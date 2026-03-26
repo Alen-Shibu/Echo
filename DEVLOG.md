@@ -5,4 +5,6 @@
 - Connected MongoDB using Mongoose
 - Created User model
 - Created register route
+- Created login route
+- Created logout route
 - Tested using postman
