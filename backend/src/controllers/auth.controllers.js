@@ -14,6 +14,7 @@ export const register = async(req,res) => {
     if(!userNameTrimmed) return res.status(400).json({message:"User Name is required"})
     if(!emailTrimmed) return res.status(400).json({message:"Email is required"})
     if(!passwordTrimmed) return res.status(400).json({message:"Password is required"})
+    if (userNameTrimmed.length < 3 || userNameTrimmed.length > 15) return res.status(400).json({ message: "Username must be between 3 and 15 characters" })
 
     // Check for leading/trailing spaces
     if(password !== passwordTrimmed) return res.status(400).json({message: "Password cannot start or end with a space"})
@@ -137,5 +138,49 @@ export const updateProfile = async(req,res) => {
     } catch (error) {
         console.error("Error in updateProfile controller",error)
         return res.status(500).json({message: "Internal Server Error"})
+    }
+}
+
+export const updateUserName = async(req,res) => {
+    try {
+        const {newUserName} = req.body;
+        const newUserNameTrimmed = newUserName?.trim()
+
+        if(!newUserNameTrimmed) return res.status(400).json({message: "New Username not provided"})
+        if(newUserNameTrimmed === req.user.userName) return res.status(400).json({message: "New username must be different from current one"})
+        if (newUserNameTrimmed.length < 3 || newUserNameTrimmed.length > 15) return res.status(400).json({ message: "Username must be between 3 and 15 characters" })
+
+        const updatedUser = await User.findByIdAndUpdate(req.user._id,{userName: newUserNameTrimmed},{new:true}).select('-password')
+
+        res.status(200).json({message: "Username updated",updatedUser})
+    } catch (error) {
+        console.error('Error in updateUserName endpoint',error)
+        return res.status(500).json({message: "Internal server error"})
+    }
+} 
+
+export const updatePassword = async(req,res) => {
+    try {
+        const {password,newPassword} = req.body;
+        const passwordTrimmed = password?.trim();
+        const newPasswordTrimmed = newPassword?.trim();
+
+        if(!passwordTrimmed) return res.status(400).json({message:"Old Password is required"})
+        if(!newPasswordTrimmed) return res.status(400).json({message:"New Password is required"})
+        if(newPassword !== newPasswordTrimmed) return res.status(400).json({message: "Password cannot start or end with a space"})
+        if(newPasswordTrimmed.length<5) return res.status(400).json({message:"Password should be atleast 5 characters"})
+        if (passwordTrimmed === newPasswordTrimmed) return res.status(400).json({ message: "New password must be different from current one" })
+
+        const user = await User.findById(req.user._id)
+        const isPasswordCorrect = await bcrypt.compare(passwordTrimmed,user.password)
+        if(!isPasswordCorrect) return res.status(401).json({message: "Invalid password"})
+
+        const hashedPass = await bcrypt.hash(newPasswordTrimmed,10)
+
+        await User.findByIdAndUpdate(req.user._id,{password: hashedPass})
+        res.status(200).json({message: "Password Updated"})
+    } catch (error) {
+        console.error('Error in updatePassword endpoint',error)
+        return res.status(500).json({message: "Internal server error"})
     }
 }
