@@ -1,0 +1,31 @@
+<svg width="400" height="180" viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .logo-text { font-family: sans-serif; font-weight: 500; font-size: 52px; fill: #534AB7; letter-spacing: 4px; }
+      .bubble { fill: #EEEDFE; stroke: #534AB7; stroke-width: 2; }
+      .dot { fill: #534AB7; }
+      .wave1 { stroke: #534AB7; }
+      .wave2 { stroke: #7F77DD; }
+      .wave3 { stroke: #AFA9EC; }
+    </style>
+  </defs>
+
+  <!-- Speech bubble -->
+  <rect x="30" y="30" width="120" height="88" rx="18" class="bubble"/>
+  <!-- Bubble tail -->
+  <path d="M68 118 L54 142 L84 118Z" fill="#EEEDFE" stroke="#534AB7" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M68 118 L84 118" stroke="#EEEDFE" stroke-width="2.5"/>
+
+  <!-- Center dot -->
+  <circle cx="90" cy="74" r="5" class="dot"/>
+
+  <!-- Wave 1 -->
+  <path d="M102 62 Q115 74 102 86" fill="none" stroke="#534AB7" stroke-width="2.5" stroke-linecap="round" class="wave1"/>
+  <!-- Wave 2 -->
+  <path d="M112 53 Q132 74 112 95" fill="none" stroke="#7F77DD" stroke-width="2" stroke-linecap="round" class="wave2"/>
+  <!-- Wave 3 -->
+  <path d="M122 44 Q150 74 122 104" fill="none" stroke="#AFA9EC" stroke-width="1.5" stroke-linecap="round" class="wave3"/>
+
+  <!-- App name -->
+  <text x="168" y="98" class="logo-text">echo</text>
+</svg>
