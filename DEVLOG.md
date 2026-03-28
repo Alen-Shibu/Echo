@@ -15,9 +15,12 @@
 - Created update userName endpoint
 - Created update password endpoint
 - Created Message model
-
-## Day 3 - Message routes
 - Created getAllContacts endpoint
 - Created getAllChats endpoint
+
+## Day 3 - Message routes 
+
 - Created getMessages endpoint
 - Created sendMessages endpoint
+- Frontend setup done
+- Added favicon
