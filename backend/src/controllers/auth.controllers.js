@@ -124,14 +124,18 @@ export const updateProfile = async(req,res) => {
             await cloudinary.uploader.destroy(publicId)
         }
 
-        let cloudUpload
+        let cloudImg
         try {
-            cloudUpload = await cloudinary.uploader.upload(profilePic)
+            const cloudUpload = await cloudinary.uploader.upload(profilePic, {
+                resource_type: "image",
+                folder: "profile_images",       // organise in Cloudinary
+                transformation: [{ quality: "auto", fetch_format: "auto" }], // optimise
+            });
+            cloudImg = cloudUpload.secure_url
         } catch (error) {
             return res.status(400).json({ message: "Image upload failed" })
         }
 
-        const cloudImg = cloudUpload.secure_url
         const updatedUser = await User.findByIdAndUpdate(userId,{profilePic:cloudImg},{new:true}).select('-password')
 
         res.status(200).json({ message: "Profile pic updated", updatedUser })

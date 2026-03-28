@@ -14,3 +14,10 @@
 - created update profile endpoint
 - Created update userName endpoint
 - Created update password endpoint
+- Created Message model
+
+## Day 3 - Message routes
+- Created getAllContacts endpoint
+- Created getAllChats endpoint
+- Created getMessages endpoint
+- Created sendMessages endpoint
