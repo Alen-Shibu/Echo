@@ -1,19 +1,37 @@
 import {Routes, Route } from 'react-router-dom'
-import Register from './pages/Register'
-import Login from './pages/Login'
+import LoginPage from './pages/LoginPage.jsx'
+import RegisterPage from './pages/RegisterPage.jsx'
 import ChatPage from './pages/ChatPage'
-import {authStore} from './store/authStore.js'
+import {useAuthStore} from './store/useAuthStore.js'
+import { Toaster } from 'react-hot-toast';
+import { useEffect } from 'react'
+import PageLoader from './components/PageLoader.jsx'
 
 const App = () => {
 
+  const {authUser, checkAuth, isCheckingAuth} = useAuthStore()
+
+  useEffect(()=>{
+    checkAuth()
+  },[checkAuth])
+
+  if(isCheckingAuth) return <PageLoader />
+
   return (
-    <div>
+  <div>
+    <div className="min-h-screen bg-slate-900 relative flex items-center justify-center p-4 overflow-hidden">
+      {/* DECORATORS - NEW STYLE: overlapping translucent circles */}
+      <div className="absolute top-10 left-10 w-72 h-72 bg-white rounded-full opacity-10 animate-pulse" />
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-yellow-400 rounded-full opacity-15 blur-xl" />
+      <div className="relative z-10"></div>
       <Routes>
-        <Route path='/register' element={<Register />} />
-        <Route path='/login' element={<Login />} />
-        <Route path='/' element={<ChatPage />} />
+        <Route path='/register' element={!authUser ? <RegisterPage /> : <ChatPage />} />
+        <Route path='/login' element={!authUser ? <LoginPage /> : <ChatPage />} />
+        <Route path='/' element={authUser ? <ChatPage /> : <LoginPage />} />
       </Routes>
+      <Toaster/>
     </div>
+  </div>
   )
 }
 
