@@ -28,3 +28,5 @@
 ## Day 4 - Register and Login Pages
 
 - Changed PageLoader
+- Created Register Page
+- Created Login Page
