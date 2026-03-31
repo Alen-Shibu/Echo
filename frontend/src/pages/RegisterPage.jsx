@@ -1,13 +1,21 @@
 import { useState } from "react";
 import "./register.css"; // move your CSS into this file
 import { Link } from "react-router-dom";
+import { useAuthStore } from "../store/useAuthStore";
 
 const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({userName:"",email:"",password:""})
+  const {register,isRegistering} = useAuthStore()
 
   const togglePwd = () => {
     setShowPassword((prev) => !prev);
   };
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    register(formData)
+  }
 
   return (
     <div className="wrapper">
@@ -46,12 +54,17 @@ const RegisterPage = () => {
           <div className="divider"><span>or</span></div>
 
           {/* FORM */}
-          <form className="form">
+          <form className="form" onSubmit={handleSubmit}>
             {/* Name */}
             <div className="field">
               <label htmlFor="name">Full Name</label>
               <div className="input-wrap">
-                <input type="text" id="name" placeholder="Enter full name" />
+                <input type="text" 
+                id="name" 
+                placeholder="Enter full name"
+                value={formData.userName}
+                onChange={(e) => setFormData({...formData,userName: e.target.value})}
+                />
               </div>
             </div>
 
@@ -59,7 +72,12 @@ const RegisterPage = () => {
             <div className="field">
               <label htmlFor="email">Email Address</label>
               <div className="input-wrap">
-                <input type="email" id="email" placeholder="Enter email" />
+                <input type="email" 
+                id="email"
+                 placeholder="Enter email" 
+                 value={formData.email}
+                 onChange={(e) => setFormData({...formData,email: e.target.value})}
+                 />
               </div>
             </div>
 
@@ -71,6 +89,8 @@ const RegisterPage = () => {
                   type={showPassword ? "text" : "password"}
                   id="password"
                   placeholder="Enter password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData,password: e.target.value})}
                 />
 
                 <button
@@ -95,8 +115,8 @@ const RegisterPage = () => {
             </div>
 
             {/* Submit */}
-            <button className="submit-btn" type="submit">
-              Create Account →
+            <button className="submit-btn" type="submit" disabled={isRegistering}>
+              {isRegistering ? "Wait" : "Create Account →"}
             </button>
           </form>
 

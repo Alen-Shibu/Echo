@@ -25,4 +25,6 @@
 - Frontend setup done
 - Added favicon
 
-## Day 4 - Signup and Login Pages
+## Day 4 - Register and Login Pages
+
+- Changed PageLoader
