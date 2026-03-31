@@ -171,17 +171,6 @@
   .avatar:nth-child(3) { background: linear-gradient(135deg,#818cf8,#a78bfa); }
   .avatar:nth-child(4) { background: linear-gradient(135deg,#fbbf24,#f87171); }
  
-  .proof-text {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    line-height: 1.4;
-  }
- 
-  .proof-text strong {
-    color: var(--text-primary);
-    font-weight: 500;
-  }
- 
   /* ════════════════════════════
      RIGHT PANEL
   ════════════════════════════ */
@@ -463,6 +452,7 @@
     transition: all 0.25s ease;
     box-shadow: 0 4px 20px rgba(124,58,237,0.4);
     animation: fadeUp 0.5s 0.8s both;
+    margin-top: 0.5rem;
   }
  
   .submit-btn::before {

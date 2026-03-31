@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "./register.css"; // move your CSS into this file
+import "./auth.css"; // move your CSS into this file
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 
@@ -42,7 +42,7 @@ const RegisterPage = () => {
 
           <div className="card-header">
             <h2>Create account</h2>
-            <p>Already have one? <a href="#">Sign in instead</a></p>
+            <p>Already have one? <Link to={'/login'}>Sign in insted</Link></p>
           </div>
 
           {/* OAuth */}
