@@ -30,3 +30,5 @@
 - Changed PageLoader
 - Created Register Page
 - Created Login Page
+- Added Logo in auth Pages
+- Added a loading icon for submit buttons
