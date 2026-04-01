@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./auth.css"; // move your CSS into this file
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
+import SubmitLoader from '../components/SubmitLoader'
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,7 +26,7 @@ const LoginPage = () => {
         <div className="orbit orbit-2"><div className="orbit-dot"></div></div>
 
         <div className="logo">
-          <div className="logo-icon">✦</div>
+          <div className="logo-icon"><img src="../public/logo.png" alt="logo" /></div>
           Echo
         </div>
 
@@ -92,7 +93,7 @@ const LoginPage = () => {
 
             {/* Submit */}
             <button className="submit-btn" type="submit" disabled={isLoggingIn}>
-              {isLoggingIn ? "Signing in..." : "Sign In →"}
+              {isLoggingIn ? <SubmitLoader /> : "Sign In →"}
             </button>
           </form>
 
