@@ -32,3 +32,7 @@
 - Created Login Page
 - Added Logo in auth Pages
 - Added a loading icon for submit buttons
+
+## Day 5 - ChatStore setup
+
+- Created useChatStore store
