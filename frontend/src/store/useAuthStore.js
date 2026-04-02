@@ -7,7 +7,6 @@ export const useAuthStore = create((set) => ({
     isCheckingAuth: true,
     isRegistering: false,
     isLoggingIn: false,
-    isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) ?? true,
 
     checkAuth: async() => {
         try {
@@ -45,5 +44,5 @@ export const useAuthStore = create((set) => ({
         } finally {
             set({isLoggingIn:false})
         }
-    }
+    },
 }))
