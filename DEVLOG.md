@@ -37,3 +37,7 @@
 
 - Created useChatStore store
 - Created ChatPage
+
+## Day 6 - Deployment
+
+- Deployed Frontend on Vercel & Backend on Render
