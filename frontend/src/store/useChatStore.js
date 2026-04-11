@@ -56,11 +56,14 @@ export const useChatStore = create((set,get) => ({
         }
     },
 
-    sendMessage: async(userId) => {
+    sendMessage: async(userId, text, image = null) => {
         try {
-            const res = await api.post(`/message/send/${userId}`)
-            set({messages: res.data})
+            const res = await api.post(`/message/send/${userId}`, { text, image })
+            set((state) => ({ messages: [...state.messages, res.data] }))
+            return res.data
         } catch (error) {
             toast.error(error.response?.data?.message || "Something went wrong")
-    }}
+            throw error
+        }
+    }
 }))

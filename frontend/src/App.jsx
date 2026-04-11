@@ -23,8 +23,8 @@ const App = () => {
   <div>
     <div className="min-h-screen bg-slate-900 relative flex items-center justify-center p-4 overflow-hidden">
       {/* DECORATORS - NEW STYLE: overlapping translucent circles */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-white rounded-full opacity-10 animate-pulse" />
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-yellow-400 rounded-full opacity-15 blur-xl" />
+      <div className="absolute top-10 left-10 w-72 h-72 bg-white rounded-full opacity-10 animate-pulse pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-yellow-400 rounded-full opacity-15 blur-xl pointer-events-none" />
       <div className="relative z-10"></div>
       <Routes>
         <Route path='/' element={authUser ? <ChatPage /> : <LoginPage />} />
