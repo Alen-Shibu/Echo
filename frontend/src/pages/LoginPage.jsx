@@ -26,7 +26,7 @@ const LoginPage = () => {
         <div className="orbit orbit-2"><div className="orbit-dot"></div></div>
 
         <div className="logo">
-          <div className="logo-icon"><img src="../public/logo.png" alt="logo" /></div>
+          <div className="logo-icon"><img src="/logo.png" alt="logo" /></div>
           Echo
         </div>
 
