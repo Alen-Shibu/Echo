@@ -112,8 +112,8 @@ const ChatPage = () => {
         </header>
 
         <div className="tab-row">
-          <button className={activeTab === "chats" ? "active" : ""} onClick={() => {setActiveTab("chats"); console.log('chats')}}>Chats</button>
-          <button className={activeTab === "contacts" ? "active" : ""} onClick={() => {setActiveTab("contacts"); console.log('contacts')}}>Contacts</button>
+          <button className={activeTab === "chats" ? "active" : ""} onClick={() => setActiveTab("chats")}>Chats</button>
+          <button className={activeTab === "contacts" ? "active" : ""} onClick={() => setActiveTab("contacts")}>Contacts</button>
         </div>
 
         <div className="chat-list">
