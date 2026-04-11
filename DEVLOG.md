@@ -33,6 +33,7 @@
 - Added Logo in auth Pages
 - Added a loading icon for submit buttons
 
-## Day 5 - ChatStore setup
+## Day 5 - ChatStore setup & ChatPage Setup
 
 - Created useChatStore store
+- Created ChatPage
