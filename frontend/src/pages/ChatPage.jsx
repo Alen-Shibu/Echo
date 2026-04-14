@@ -1,56 +1,60 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
+import { 
+  Send, 
+  LogOut, 
+  Users, 
+  MessageSquare, 
+  Menu, 
+  X,
+  Search,
+  Smile,
+  Paperclip,
+  CheckCheck
+} from "lucide-react";
 import "./chatPage.css";
 
-
-const Avatar = ({name}) => {
-  const initials = name ? name.split(" ").map((part) => part[0]?.toUpperCase()).slice(0,2).join("") : "U" ;
-  /* ex: name(It is a prop thats why in {}) = alen shibu mathew
-        .split = ["alen","shibu","mathew"]
-        .map = ["A","S","M"]
-        .slice = ["A","S"]
-        .join = "AS"
-  */
-  return <div className="chat-avatar">{initials}</div>
-}
+const Avatar = ({ name, size = "normal" }) => {
+  const initials = name ? name.slice(0, 2).toUpperCase() : "?";
+  return (
+    <div className={`chat-avatar ${size}`}>
+      {initials}
+    </div>
+  );
+};
 
 const ChatListItem = ({ user, active, onSelect }) => (
   <button className={`chat-list-item ${active ? "active" : ""}`} onClick={() => onSelect(user)}>
-    <Avatar name={user.name || user.userName || user.email} />
+    <Avatar name={user.userName || user.name || user.email} size="small" />
     <div className="chat-list-text">
-      <strong>{user.userName || user.name || "Unknown"}</strong>
-      <span>{user.email || "No email"}</span>
+      <div className="chat-list-header">
+        <strong>{user.userName || user.name || "Unknown"}</strong>
+      </div>
+      <div className="chat-list-footer">
+        <span className="last-message">{user.email || "No email"}</span>
+      </div>
     </div>
   </button>
 );
 
 const MessageBubble = ({ message, isMe }) => (
-  <div className={`message-bubble ${isMe ? "me" : "them"}`}>
-    <p>{message.text || "(Photo)"}</p>
-    <span>{new Date(message.createdAt).toLocaleTimeString(["en-IN"], { hour: "2-digit", minute: "2-digit" })}</span>
+  <div className={`message-wrapper ${isMe ? "me" : "them"}`}>
+    <div className={`message-bubble ${isMe ? "me" : "them"}`}>
+      {message.image && <img src={message.image} alt="shared" className="message-image" />}
+      {message.text && <p>{message.text}</p>}
+      <div className="message-meta">
+        <span>{new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        {isMe && <CheckCheck size={14} className="read-receipt" />}
+      </div>
+    </div>
   </div>
-); 
-
-const ChatInput = ({ value, onChange, onSend, disabled }) => (
-  <form className="chat-input-box" onSubmit={onSend}>
-    <input
-      type="text"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder="Type your message..."
-      disabled={disabled}
-    />
-    <button type="submit" disabled={disabled || !value.trim()}>
-      Send
-    </button>
-  </form>
 );
 
 const ChatPage = () => {
   const navigate = useNavigate();
-  const { authUser, logout  } = useAuthStore();
+  const { authUser, logout, isCheckingAuth } = useAuthStore();
   const {
     contacts,
     chats,
@@ -59,35 +63,55 @@ const ChatPage = () => {
     activeTab,
     isUsersLoading,
     isMessagesLoading,
+    isInitialized,
     setActiveTab,
     setSelectedUser,
-    getAllContacts,
-    getAllChats,
     getAllMessages,
     sendMessage,
+    initializeChat,
+    reset
   } = useChatStore();
 
   const [draft, setDraft] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
+  // Check auth and initialize chat
   useEffect(() => {
     if (!authUser) {
       navigate("/login");
       return;
     }
-    getAllContacts();
-    getAllChats();
-  }, [authUser, navigate, getAllChats, getAllContacts]);
+  }, [authUser, navigate]);
 
+  // Reset chat store on logout
   useEffect(() => {
-    if (selectedUser?.id || selectedUser?._id) {
+    return () => {
+      reset();
+    };
+  }, [reset]);
+
+useEffect(() => {
+  if (!authUser) return;
+  initializeChat();
+}, [authUser]);
+
+  // Load messages when user is selected
+  useEffect(() => {
+    if (selectedUser?._id || selectedUser?.id) {
       getAllMessages(selectedUser._id || selectedUser.id);
     }
   }, [selectedUser, getAllMessages]);
 
-  const selectedList = activeTab === "chats" ? chats : contacts;
+  // Scroll to bottom on new messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-  const activeRecipient = selectedUser?.userName || selectedUser?.name || "Select a contact";
+  const selectedList = activeTab === "chats" ? chats : contacts;
 
   const onSend = async (e) => {
     e.preventDefault();
@@ -97,73 +121,243 @@ const ChatPage = () => {
     try {
       await sendMessage(selectedUser._id || selectedUser.id, draft.trim());
       setDraft("");
+      inputRef.current?.focus();
     } catch (error) {
-      // errors handled in store toast
+      // handled in store
     } finally {
       setIsSending(false);
     }
   };
 
+  const handleLogout = async () => {
+    await logout();
+    reset();
+    navigate("/login");
+  };
+
+  const toggleSidebar = () => {
+    if (window.innerWidth <= 768) {
+      setMobileMenuOpen(!mobileMenuOpen);
+    } else {
+      setSidebarOpen(!sidebarOpen);
+    }
+  };
+
+  const handleSelectUser = (user) => {
+    setSelectedUser(user);
+    if (window.innerWidth <= 768) setMobileMenuOpen(false);
+  };
+
+  // Show loading while checking auth
+  if (isCheckingAuth) {
+    return (
+      <div className="loading-container">
+        <div className="loader"></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Redirect if no auth user
+  if (!authUser) {
+    return null;
+  }
+
+  const formatDate = (date) => {
+    const now = new Date();
+    const msgDate = new Date(date);
+    const diffDays = Math.floor((now - msgDate) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return msgDate.toLocaleDateString([], { weekday: 'short' });
+    return msgDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
+  const groupedMessages = messages.reduce((groups, message) => {
+    const date = formatDate(message.createdAt);
+    if (!groups[date]) groups[date] = [];
+    groups[date].push(message);
+    return groups;
+  }, {});
+
   return (
-    <div className="chat-wrapper">
-      <aside className="chat-sidebar">
-        <header className="sidebar-header">
-          <h2>{authUser?.userName || authUser?.email || "Chat"}</h2>
-              <button className="logout-btn" onClick={logout} title="Logout">
-                  ⎋
-              </button>
-        </header>
-
-        <div className="tab-row">
-          <button className={activeTab === "chats" ? "active" : ""} onClick={() => setActiveTab("chats")}>Chats</button>
-          <button className={activeTab === "contacts" ? "active" : ""} onClick={() => setActiveTab("contacts")}>Contacts</button>
+    <div className="chat-app">
+      {/* Header */}
+      <header className="chat-header">
+        <div className="header-left">
+          <button className="menu-btn" onClick={toggleSidebar}>
+            {(sidebarOpen && window.innerWidth > 768) || mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
-
-        <div className="chat-list">
-          {isUsersLoading ? (
-            <div className="side-loading">Loading users...</div>
-          ) : selectedList.length > 0 ? (
-            selectedList.map((user) => (
-              <ChatListItem
-                key={user._id || user.id || user.email}
-                user={user}
-                active={(selectedUser?._id || selectedUser?.id) === (user._id || user.id)}
-                onSelect={setSelectedUser}
-              />
-            ))
-          ) : (
-            <div className="side-empty">No {activeTab} yet</div>
+        <div className="header-center">
+          {selectedUser && (
+            <div className="active-chat-info">
+              <h3>{selectedUser.userName || selectedUser.name}</h3>
+              <span>Online</span>
+            </div>
           )}
         </div>
-      </aside>
-
-      <main className="chat-main">
-        <div className="chat-main-header">
-          <h3>{activeRecipient}</h3>
-          <span>{selectedUser ? "Active now" : "Pick someone to start"}</span>
+        <div className="header-right">
+          <button className="icon-btn" title="Search">
+            <Search size={18} />
+          </button>
+          <button className="icon-btn" onClick={handleLogout} title="Logout">
+            <LogOut size={18} />
+          </button>
         </div>
+      </header>
 
-        <div className="messages-wrap">
-          {isMessagesLoading ? (
-            <div className="messages-loading">Loading messages...</div>
-          ) : messages.length ? (
-            messages.map((message,index) => (
-              <MessageBubble
-                key={message._id || message.id || index}
-                message={message}
-                isMe={message.senderId === authUser?._id}
-              />
-            ))
+      <div className="chat-container">
+        {/* Sidebar */}
+        <aside className={`chat-sidebar ${sidebarOpen ? "open" : "closed"} ${mobileMenuOpen ? "mobile-open" : ""}`}>
+          <div className="sidebar-header">
+            <div className="user-info">
+              <Avatar name={authUser?.userName || authUser?.email} />
+              <div>
+                <p className="user-name">{authUser?.userName || "User"}</p>
+                <p className="user-email">{authUser?.email}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="tab-row">
+            <button 
+              className={`tab-btn ${activeTab === "chats" ? "active" : ""}`}
+              onClick={() => setActiveTab("chats")}
+            >
+              <MessageSquare size={16} />
+              <span>Chats</span>
+              {chats.length > 0 && <span className="tab-count">{chats.length}</span>}
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === "contacts" ? "active" : ""}`}
+              onClick={() => setActiveTab("contacts")}
+            >
+              <Users size={16} />
+              <span>Contacts</span>
+              {contacts.length > 0 && <span className="tab-count">{contacts.length}</span>}
+            </button>
+          </div>
+
+          <div className="chat-list">
+            {isUsersLoading ? (
+              <div className="loading-state">
+                <div className="loader"></div>
+                <p>Loading...</p>
+              </div>
+            ) : selectedList.length > 0 ? (
+              selectedList.map((user) => (
+                <ChatListItem
+                  key={user._id || user.id}
+                  user={user}
+                  active={(selectedUser?._id || selectedUser?.id) === (user._id || user.id)}
+                  onSelect={handleSelectUser}
+                />
+              ))
+            ) : (
+              <div className="empty-state">
+                <div className="empty-icon">💬</div>
+                <p>No {activeTab} yet</p>
+                <small>
+                  {activeTab === "chats" 
+                    ? "Start a conversation with someone" 
+                    : "No other users found"}
+                </small>
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* Main Chat Area */}
+        <main className="chat-main-area">
+          {!selectedUser ? (
+            <div className="welcome-screen">
+              <div className="welcome-content">
+                <div className="welcome-icon">💬</div>
+                <h2>Welcome to Echo</h2>
+                <p>Select a conversation to start chatting</p>
+                {contacts.length > 0 && (
+                  <button 
+                    className="start-chat-btn"
+                    onClick={() => {
+                      setActiveTab("contacts");
+                      if (contacts[0]) handleSelectUser(contacts[0]);
+                    }}
+                  >
+                    Start a conversation
+                  </button>
+                )}
+              </div>
+            </div>
           ) : (
-            <div className="empty-messages">No conversation yet. Say hello 👋</div>
-          )}
-        </div>
+            <>
+              <div className="chat-messages">
+                {isMessagesLoading ? (
+                  <div className="loading-messages">
+                    <div className="loader"></div>
+                    <p>Loading messages...</p>
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="empty-chat">
+                    <div className="empty-chat-icon">💭</div>
+                    <p>No messages yet</p>
+                    <small>Send a message to start the conversation</small>
+                  </div>
+                ) : (
+                  Object.entries(groupedMessages).map(([date, msgs]) => (
+                    <div key={date} className="message-group">
+                      <div className="date-divider">
+                        <span>{date}</span>
+                      </div>
+                      {msgs.map((message, idx) => (
+                        <MessageBubble
+                          key={message._id || idx}
+                          message={message}
+                          isMe={message.senderId === authUser?._id}
+                        />
+                      ))}
+                    </div>
+                  ))
+                )}
+                <div ref={messagesEndRef} />
+              </div>
 
-        <ChatInput value={draft} onChange={setDraft} onSend={onSend} disabled={!selectedUser || isSending} />
-      </main>
+              <form className="chat-input-form" onSubmit={onSend}>
+                <div className="input-actions">
+                  <button type="button" className="attach-btn" title="Attach file">
+                    <Paperclip size={18} />
+                  </button>
+                  <button type="button" className="emoji-btn" title="Add emoji">
+                    <Smile size={18} />
+                  </button>
+                </div>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  placeholder="Type a message..."
+                  disabled={isSending}
+                  className="message-input"
+                />
+                <button 
+                  type="submit" 
+                  disabled={!draft.trim() || isSending}
+                  className="send-btn"
+                >
+                  <Send size={18} />
+                </button>
+              </form>
+            </>
+          )}
+        </main>
+      </div>
+
+      {/* Mobile overlay */}
+      {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)} />}
     </div>
   );
 };
 
 export default ChatPage;
-
