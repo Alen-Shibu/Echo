@@ -685,11 +685,17 @@ body {
     z-index: 0;
   }
 
+  .chat-app{
+    width: 100vw;
+    height: 100vh;
+  }
+
   .chat-sidebar {
     position: fixed;
     top: 0;
     left: 0;
     height: 100%;
+    width: 75%;
     z-index: 50;
     transform: translateX(-100%);
   }
