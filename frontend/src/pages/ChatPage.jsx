@@ -14,6 +14,7 @@ import {
   Paperclip,
   CheckCheck
 } from "lucide-react";
+import EmojiPicker from 'emoji-picker-react';
 import "./chatPage.css";
 
 const Avatar = ({ name, size = "normal" }) => {
@@ -76,8 +77,11 @@ const ChatPage = () => {
   const [isSending, setIsSending] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const emojiButtonRef = useRef(null);
+  const emojiPickerRef = useRef(null);
 
   // Check auth and initialize chat
   useEffect(() => {
@@ -94,10 +98,10 @@ const ChatPage = () => {
     };
   }, [reset]);
 
-useEffect(() => {
-  if (!authUser) return;
-  initializeChat();
-}, [authUser]);
+  useEffect(() => {
+    if (!authUser) return;
+    initializeChat();
+  }, [authUser]);
 
   // Load messages when user is selected
   useEffect(() => {
@@ -110,6 +114,23 @@ useEffect(() => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        emojiPickerRef.current && 
+        !emojiPickerRef.current.contains(event.target) &&
+        emojiButtonRef.current &&
+        !emojiButtonRef.current.contains(event.target)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const selectedList = activeTab === "chats" ? chats : contacts;
 
@@ -146,6 +167,13 @@ useEffect(() => {
   const handleSelectUser = (user) => {
     setSelectedUser(user);
     if (window.innerWidth <= 768) setMobileMenuOpen(false);
+  };
+
+  // Handle emoji selection
+  const onEmojiClick = (emojiObject) => {
+    setDraft(prev => prev + emojiObject.emoji);
+    setShowEmojiPicker(false);
+    inputRef.current?.focus();
   };
 
   // Show loading while checking auth
@@ -324,13 +352,30 @@ useEffect(() => {
               </div>
 
               <form className="chat-input-form" onSubmit={onSend}>
-                <div className="input-actions">
+                <div className="input-actions" style={{ position: 'relative' }}>
                   <button type="button" className="attach-btn" title="Attach file">
                     <Paperclip size={18} />
                   </button>
-                  <button type="button" className="emoji-btn" title="Add emoji">
+                  <button 
+                    type="button" 
+                    className="emoji-btn" 
+                    title="Add emoji"
+                    ref={emojiButtonRef}
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  >
                     <Smile size={18} />
                   </button>
+                  {showEmojiPicker && (
+                    <div ref={emojiPickerRef} style={{
+                      position: 'absolute',
+                      bottom: '100%',
+                      left: 0,
+                      marginBottom: '10px',
+                      zIndex: 1000
+                    }}>
+                      <EmojiPicker onEmojiClick={onEmojiClick} />
+                    </div>
+                  )}
                 </div>
                 <input
                   ref={inputRef}
