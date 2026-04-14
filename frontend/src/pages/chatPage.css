@@ -30,17 +30,16 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
   background: var(--bg-primary);
-  overflow: hidden;
   height: 100dvh;
 }
 
 /* Chat App Container */
 .chat-app {
-  height: 90vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
-  width: 75vw;
+  width: 100%;
 }
 
 /* Header */
