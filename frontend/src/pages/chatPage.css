@@ -687,7 +687,7 @@ body {
 
   .chat-app{
     width: 100vw;
-    height: 95vh;
+    height: 100vh;
   }
 
   .chat-sidebar {
@@ -737,6 +737,11 @@ body {
 
   .message-bubble {
     padding: 8px 12px;
+  }
+
+
+  .chat-app{
+    height: 85vh;
   }
 
   .chat-messages {
