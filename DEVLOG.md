@@ -49,3 +49,4 @@
 - Improved Overall UI
 - Fixed cookie bugs and useEffect bugs
 - Made the App responsive
+- emoji icon and functionality added
