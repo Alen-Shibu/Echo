@@ -46,3 +46,5 @@
 
 - build logout store and button
 - Improved chatPage UI
+- Improved Overall UI
+- Fixed cookie bugs and useEffect bugs

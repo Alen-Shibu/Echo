@@ -1,57 +1,65 @@
 import {create} from 'zustand'
 import api from '../api/axios.js'
 import toast from 'react-hot-toast';
+import { useChatStore } from './useChatStore.js';
 
-export const useAuthStore = create((set) => ({
-    authUser:null,
+export const useAuthStore = create((set, get) => ({
+    authUser: null,
     isCheckingAuth: true,
     isRegistering: false,
     isLoggingIn: false,
 
-    checkAuth: async() => {
+    checkAuth: async () => {
         try {
             const res = await api.get("/auth/check")
-            set({authUser: res.data})
+            set({ authUser: res.data, isCheckingAuth: false })
+            // IMPORTANT: trigger chat init here
+            useChatStore.getState().initializeChat()
+            return res.data
         } catch (error) {
-            console.log('User Not Authenticated Yet',error)
-            set({authUser: null})
-        } finally {
-            set({isCheckingAuth: false})
+            console.log(error)
+            set({ authUser: null, isCheckingAuth: false })
+            return null
         }
     },
 
-    register: async(data) => {
+    register: async (data) => {
         try {
-            set({isRegistering: true})
-            const res = await api.post("/auth/register",data)
-            set({authUser:res.data})
+            set({ isRegistering: true })
+            const res = await api.post("/auth/register", data)
+            set({ authUser: res.data })
             toast.success("Registered Successfully")
+            return res.data
         } catch (error) {
-            toast.error(error.response.data.message || "Registration Failed")
-        } finally{
-            set({isRegistering: false})
-        }
-    },
-
-    login: async(data) => {
-        try {
-            set({isLoggingIn:true})
-            const res = await api.post('/auth/login',data)
-            set({authUser:res.data})
-            toast.success("LoggedIn successfully")
-        } catch (error) {
-            toast.error(error.response.data.message || "Login Failed")
+            toast.error(error.response?.data?.message || "Registration Failed")
+            throw error
         } finally {
-            set({isLoggingIn:false})
+            set({ isRegistering: false })
         }
     },
 
-    logout: async() => {
+    login: async (data) => {
+        try {
+            set({ isLoggingIn: true })
+            const res = await api.post('/auth/login', data)
+            set({ authUser: res.data })
+            toast.success("Logged in successfully")
+            return res.data
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Login Failed")
+            throw error
+        } finally {
+            set({ isLoggingIn: false })
+        }
+    },
+
+    logout: async () => {
         try {
             await api.post('/auth/logout')
-            set({authUser:null})
+            set({ authUser: null })
+            toast.success("Logged out successfully")
         } catch (error) {
-            toast.error(error.response.data.message || "Logout Failed")
+            toast.error(error.response?.data?.message || "Logout Failed")
         }
     }
 }))
