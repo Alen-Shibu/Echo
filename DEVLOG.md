@@ -41,3 +41,8 @@
 ## Day 6 - Deployment
 
 - Deployed Frontend on Vercel & Backend on Render
+
+## Day 7 - Improvements
+
+- build logout store and button
+- Improved chatPage UI
