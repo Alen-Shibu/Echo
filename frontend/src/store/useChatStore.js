@@ -87,10 +87,10 @@ initializeChat: async () => {
         }
     },
 
-    sendMessage: async (userId, text, image = null) => {
+    sendMessage: async (userId, payload) => {
         if (!userId) throw new Error("No user selected")
         try {
-            const res = await api.post(`/message/send/${userId}`, { text, image })
+            const res = await api.post(`/message/send/${userId}`, payload)
             set((state) => ({ messages: [...state.messages, res.data] }))
             get().getAllChats()
             return res.data

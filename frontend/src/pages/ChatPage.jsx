@@ -78,10 +78,12 @@ const ChatPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null)
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const emojiButtonRef = useRef(null);
   const emojiPickerRef = useRef(null);
+  const fileInputRef = useRef(null)
 
   // Check auth and initialize chat
   useEffect(() => {
@@ -136,15 +138,20 @@ const ChatPage = () => {
 
   const onSend = async (e) => {
     e.preventDefault();
-    if (!selectedUser || !draft.trim()) return;
+    if (!selectedUser || (!draft.trim() && !selectedImage)) return;
+    console.log({ draft, selectedImage });
 
     setIsSending(true);
     try {
-      await sendMessage(selectedUser._id || selectedUser.id, draft.trim());
+      await sendMessage(selectedUser._id || selectedUser.id,{
+        text: draft.trim(),
+        image: selectedImage
+      });
       setDraft("");
+      setSelectedImage(null)
       inputRef.current?.focus();
     } catch (error) {
-      // handled in store
+      console.error(error)
     } finally {
       setIsSending(false);
     }
@@ -208,6 +215,19 @@ const ChatPage = () => {
     groups[date].push(message);
     return groups;
   }, {});
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0]
+    if(!file) return
+
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      setSelectedImage(reader.result)
+    }
+
+    reader.readAsDataURL(file)
+  }
 
   return (
     <div className="chat-app">
@@ -353,9 +373,17 @@ const ChatPage = () => {
 
               <form className="chat-input-form" onSubmit={onSend}>
                 <div className="input-actions" style={{ position: 'relative' }}>
-                  <button type="button" className="attach-btn" title="Attach file">
+                  
+                  <button type="button" className="attach-btn" title="Attach file" onClick={() => fileInputRef.current.click()}>
                     <Paperclip size={18} />
                   </button>
+                  <input 
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    style={{display: "none"}}
+                    onChange={handleImageSelect}
+                  />
                   <button 
                     type="button" 
                     className="emoji-btn" 
@@ -388,7 +416,7 @@ const ChatPage = () => {
                 />
                 <button 
                   type="submit" 
-                  disabled={!draft.trim() || isSending}
+                  disabled={(!draft.trim() && !selectedImage) || isSending}
                   className="send-btn"
                 >
                   <Send size={18} />
