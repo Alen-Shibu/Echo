@@ -44,9 +44,13 @@
 
 ## Day 7 - Improvements
 
-- build logout store and button
+- Build logout store and button
 - Improved chatPage UI
 - Improved Overall UI
 - Fixed cookie bugs and useEffect bugs
 - Made the App responsive
-- emoji icon and functionality added
+- Emoji icon and functionality added
+
+## Day 8 - File Upload feature
+
+- Build Image upload feature

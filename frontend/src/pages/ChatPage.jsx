@@ -139,8 +139,7 @@ const ChatPage = () => {
   const onSend = async (e) => {
     e.preventDefault();
     if (!selectedUser || (!draft.trim() && !selectedImage)) return;
-    console.log({ draft, selectedImage });
-
+    
     setIsSending(true);
     try {
       await sendMessage(selectedUser._id || selectedUser.id,{
@@ -372,20 +371,20 @@ const ChatPage = () => {
               </div>
 
               {selectedImage && (
-  <div className="outer-box">
-    <div className="chatgpt-style-preview">
-    <img src={selectedImage} alt="preview" />
-    <button
-      type="button"
-      className="remove-image-btn"
-      onClick={() => setSelectedImage(null)}
-    >
-      ✕
-    </button>
-    </div>
+                <div className="outer-box">
+                  <div className="chatgpt-style-preview">
+                  <img src={selectedImage} alt="preview" />
+                  <button
+                    type="button"
+                    className="remove-image-btn"
+                    onClick={() => setSelectedImage(null)}
+                  >
+                    ✕
+                  </button>
+                  </div>
 
-  </div>
-)}
+                </div>
+              )}
               <form className="chat-input-form" onSubmit={onSend}>
                 <div className="input-actions" style={{ position: 'relative' }}>
                   
