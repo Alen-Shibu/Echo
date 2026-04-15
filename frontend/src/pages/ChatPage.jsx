@@ -371,6 +371,21 @@ const ChatPage = () => {
                 <div ref={messagesEndRef} />
               </div>
 
+              {selectedImage && (
+  <div className="outer-box">
+    <div className="chatgpt-style-preview">
+    <img src={selectedImage} alt="preview" />
+    <button
+      type="button"
+      className="remove-image-btn"
+      onClick={() => setSelectedImage(null)}
+    >
+      ✕
+    </button>
+    </div>
+
+  </div>
+)}
               <form className="chat-input-form" onSubmit={onSend}>
                 <div className="input-actions" style={{ position: 'relative' }}>
                   

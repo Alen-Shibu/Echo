@@ -351,7 +351,6 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--bg-primary);
 }
 
 /* Welcome Screen */
@@ -806,3 +805,32 @@ body {
   color: var(--text-tertiary);
 }
 
+.outer-box{
+  width: 120px;
+}
+
+.chatgpt-style-preview {
+  display: inline-block;
+  position: relative;
+}
+
+.chatgpt-style-preview img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #2a2f45;
+}
+
+.chatgpt-style-preview .remove-image-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
