@@ -4,10 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import { useSocketStore } from "../store/useSocketStore";
-import { 
-  Send, LogOut, Users, MessageSquare, Menu, X,
-  Search, Smile, Paperclip, CheckCheck
-} from "lucide-react";
+import {Send, LogOut, Users, MessageSquare, Menu, X, Volume2, VolumeX, Smile, Paperclip, CheckCheck} from "lucide-react";
 import EmojiPicker from 'emoji-picker-react';
 import "./chatPage.css";
 
@@ -57,7 +54,7 @@ const ChatPage = () => {
     contacts, chats, messages, selectedUser, activeTab,
     isUsersLoading, isMessagesLoading,
     setActiveTab, setSelectedUser, getAllMessages,
-    sendMessage, initializeChat, reset
+    sendMessage, initializeChat, reset, isSoundEnabled, toggleSound
   } = useChatStore();
 
   // ✅ Get socket and onlineUsers from socket store
@@ -78,6 +75,7 @@ const ChatPage = () => {
   const emojiPickerRef = useRef(null);
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const audioRef = useRef(null);
 
   useEffect(() => { return () => reset(); }, [reset]);
 
@@ -106,11 +104,16 @@ const ChatPage = () => {
           messages: [...state.messages, message]
         }));
       }
+    // Play sound if enabled and message is NOT from current user
+    if (isSoundEnabled && message.senderId !== authUser?._id) {
+      audioRef.current?.play().catch(e => console.log('Audio play failed:', e));
+    }
     };
+
 
     socket.on("newMessage", handleNewMessage);
     return () => socket.off("newMessage", handleNewMessage);
-  }, [socket, selectedUser]);
+  }, [socket, selectedUser, isSoundEnabled, authUser?._id]);
 
   // ✅ Listen for typing events from the other person
   useEffect(() => {
@@ -144,6 +147,11 @@ const ChatPage = () => {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    audioRef.current = new Audio('/sounds/notification.mp3');
+    audioRef.current.load(); // preload
   }, []);
 
   const selectedList = activeTab === "chats" ? chats : contacts;
@@ -269,7 +277,9 @@ const ChatPage = () => {
           )}
         </div>
         <div className="header-right">
-          <button className="icon-btn" title="Search"><Search size={18} /></button>
+          <button className="icon-btn" onClick={toggleSound} title={isSoundEnabled ? "Disable sound" : "Enable sound"}>
+            {isSoundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+          </button>
           <button className="icon-btn" onClick={handleLogout} title="Logout"><LogOut size={18} /></button>
         </div>
       </header>

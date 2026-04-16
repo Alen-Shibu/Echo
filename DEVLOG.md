@@ -60,3 +60,5 @@
 - Added Live Messaging
 - Added typing indicators
 - Added online/offline status
+- Fixed layout issue in mobile screen
+- Added sound icon and notification sound toggle
