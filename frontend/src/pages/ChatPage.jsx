@@ -12,7 +12,7 @@ import EmojiPicker from 'emoji-picker-react';
 import "./chatPage.css";
 
 const Avatar = ({ name, size = "normal" }) => {
-  const initials = name ? name.slice(0, 2).toUpperCase() : "?";
+  const initials = name ? name.split(" ").map((word)=>word[0]).join("").toUpperCase() : "?";
   return <div className={`chat-avatar ${size}`}>{initials}</div>;
 };
 

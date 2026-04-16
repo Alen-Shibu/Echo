@@ -30,6 +30,9 @@ export const useAuthStore = create((set, get) => ({
             set({ isRegistering: true })
             const res = await api.post("/auth/register", data)
             set({ authUser: res.data })
+            useSocketStore.getState().connectSocket(res.data._id)
+            // IMPORTANT: trigger chat init here
+            useChatStore.getState().initializeChat()
             toast.success("Registered Successfully")
             return res.data
         } catch (error) {
