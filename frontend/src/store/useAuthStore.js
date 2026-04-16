@@ -2,6 +2,7 @@ import {create} from 'zustand'
 import api from '../api/axios.js'
 import toast from 'react-hot-toast';
 import { useChatStore } from './useChatStore.js';
+import { useSocketStore } from './useSocketStore.js'
 
 export const useAuthStore = create((set, get) => ({
     authUser: null,
@@ -13,6 +14,7 @@ export const useAuthStore = create((set, get) => ({
         try {
             const res = await api.get("/auth/check")
             set({ authUser: res.data, isCheckingAuth: false })
+            useSocketStore.getState().connectSocket(res.data._id)
             // IMPORTANT: trigger chat init here
             useChatStore.getState().initializeChat()
             return res.data
@@ -43,6 +45,7 @@ export const useAuthStore = create((set, get) => ({
             set({ isLoggingIn: true })
             const res = await api.post('/auth/login', data)
             set({ authUser: res.data })
+            useSocketStore.getState().connectSocket(data._id)
             toast.success("Logged in successfully")
             return res.data
         } catch (error) {
@@ -57,6 +60,7 @@ export const useAuthStore = create((set, get) => ({
         try {
             await api.post('/auth/logout')
             set({ authUser: null })
+            useSocketStore.getState().disconnectSocket()
             toast.success("Logged out successfully")
         } catch (error) {
             toast.error(error.response?.data?.message || "Logout Failed")
