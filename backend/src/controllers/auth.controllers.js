@@ -2,6 +2,7 @@ import User from '../models/user.model.js'
 import bcrypt from 'bcryptjs'
 import {generateToken} from '../lib/utils.js'
 import cloudinary from '../lib/cloudinary.js'
+import { io } from '../server.js'
 
 export const register = async(req,res) => {
     try {
@@ -42,6 +43,12 @@ export const register = async(req,res) => {
         password: hashedPassword
     })
     await newUser.save()
+        io.emit("newUser", {
+        _id: newUser._id,
+        userName: newUser.userName,
+        email: newUser.email,
+        profilePic: newUser.profilePic
+    })
 
     generateToken(newUser._id,res)
 

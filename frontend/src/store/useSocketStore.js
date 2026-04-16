@@ -20,11 +20,17 @@ export const useSocketStore = create((set, get) => ({
       set({ onlineUsers: users })
     })
 
+    socket.on("newUser", async (newUser) => {
+      const { useChatStore } = await import('./useChatStore.js')
+      useChatStore.getState().addNewContact(newUser)
+    })
+
     set({ socket })
   },
 
   disconnectSocket: () => {
     get().socket?.disconnect()
     set({ socket: null, onlineUsers: [] })
-  }
+  },
 }))
+

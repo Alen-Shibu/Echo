@@ -27,7 +27,7 @@ export const useChatStore = create((set, get) => ({
 
 initializeChat: async () => {
   const authUser = useAuthStore.getState().authUser;
-  if (!authUser) return;   // 🔥 ADD THIS
+  if (!authUser) return;   
 
   if (get().isInitialized) return;
 
@@ -129,4 +129,9 @@ initializeChat: async () => {
         const socket = useSocketStore.getState().socket
         socket?.off("newMessage")
     },
+    addNewContact: (newUser) => {
+        set((state) => ({
+        contacts: [...state.contacts, newUser]
+    }));
+},
 }))
