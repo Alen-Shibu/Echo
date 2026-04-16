@@ -219,20 +219,18 @@ const ChatPage = () => {
 
   const formatDate = (date) => {
     const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
     const msgDate = new Date(date);
-    const diffDays = Math.floor((now - msgDate) / (1000 * 60 * 60 * 24));
+    const messageDay = new Date(msgDate.getFullYear(), msgDate.getMonth(), msgDate.getDate());
+    
+    const diffDays = Math.floor((today - messageDay) / (1000 * 60 * 60 * 24));
+    
     if (diffDays === 0) return "Today";
     if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return msgDate.toLocaleDateString([], { weekday: 'short' });
-    return msgDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    if (diffDays < 7) return messageDay.toLocaleDateString([], { weekday: 'short' });
+    return messageDay.toLocaleDateString([], { month: 'short', day: 'numeric' });
   };
-
-  const groupedMessages = messages.reduce((groups, message) => {
-    const date = formatDate(message.createdAt);
-    if (!groups[date]) groups[date] = [];
-    groups[date].push(message);
-    return groups;
-  }, {});
 
   // ✅ Is the currently selected user online?
   const isSelectedUserOnline = selectedUser
@@ -359,18 +357,22 @@ const ChatPage = () => {
                     <small>Send a message to start the conversation</small>
                   </div>
                 ) : (
-                  Object.entries(groupedMessages).map(([date, msgs]) => (
-                    <div key={date} className="message-group">
-                      <div className="date-divider"><span>{date}</span></div>
-                      {msgs.map((message, idx) => (
-                        <MessageBubble
-                          key={message._id || idx}
-                          message={message}
-                          isMe={message.senderId === authUser?._id}
-                        />
-                      ))}
-                    </div>
-                  ))
+                  <>
+                    {messages.map((message, idx) => {
+                      const showDateDivider = idx === 0 || formatDate(message.createdAt) !== formatDate(messages[idx - 1].createdAt);
+                      return (
+                        <div key={message._id || idx}>
+                          {showDateDivider && (
+                            <div className="date-divider"><span>{formatDate(message.createdAt)}</span></div>
+                          )}
+                          <MessageBubble
+                            message={message}
+                            isMe={message.senderId === authUser?._id}
+                          />
+                        </div>
+                      );
+                    })}
+                  </>
                 )}
                 <div ref={messagesEndRef} />
               </div>
