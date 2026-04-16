@@ -430,14 +430,17 @@ body {
 .message-wrapper {
   display: flex;
   gap: 8px;
-  max-width: 70%;
+  max-width: 100%;
 }
 
 .message-wrapper.me {
   align-self: flex-end;
   flex-direction: row-reverse;
+  padding-left: 30%;
 }
-
+.message-wrapper.them{
+  padding-right: 30%;
+}
 .message-bubble {
   max-width: 100%;
   padding: 10px 14px;
@@ -732,7 +735,7 @@ body {
   }
 
   .message-wrapper {
-    max-width: 90%;
+    max-width: 100%;
   }
 
   .message-bubble {
