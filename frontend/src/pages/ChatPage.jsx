@@ -79,10 +79,6 @@ const ChatPage = () => {
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
-  useEffect(() => {
-    if (!authUser) { navigate("/login"); return; }
-  }, [authUser, navigate]);
-
   useEffect(() => { return () => reset(); }, [reset]);
 
   useEffect(() => {
