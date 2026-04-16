@@ -1,4 +1,4 @@
-import {Routes, Route } from 'react-router-dom'
+import {Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import ChatPage from './pages/ChatPage'
@@ -27,11 +27,11 @@ const App = () => {
       <div className="absolute bottom-10 right-10 w-96 h-96 bg-yellow-400 rounded-full opacity-15 blur-xl pointer-events-none" />
       <div className="relative z-10"></div>
       <Routes>
-        <Route path='/' element={authUser ? <ChatPage /> : <LoginPage />} />
-        <Route path='/register' element={!authUser ? <RegisterPage /> : <ChatPage />} />
-        <Route path='/login' element={!authUser ? <LoginPage /> : <ChatPage />} />
+        <Route path='/' element={authUser ? <ChatPage /> : <Navigate to='/login' replace />} />
+        <Route path='/register' element={!authUser ? <RegisterPage /> : <Navigate to='/' replace />} />
+        <Route path='/login' element={!authUser ? <LoginPage /> : <Navigate to='/' replace />} />
         <Route path='/terms' element={<TermsPage />} />
-        <Route path='/privacy' element= {<PrivacyPolicyPage />} />
+        <Route path='/privacy' element={<PrivacyPolicyPage />} />
       </Routes>
       <Toaster/>
     </div>

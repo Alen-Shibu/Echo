@@ -45,7 +45,7 @@ export const useAuthStore = create((set, get) => ({
             set({ isLoggingIn: true })
             const res = await api.post('/auth/login', data)
             set({ authUser: res.data })
-            useSocketStore.getState().connectSocket(data._id)
+            useSocketStore.getState().connectSocket(res.data._id)
             toast.success("Logged in successfully")
             return res.data
         } catch (error) {
