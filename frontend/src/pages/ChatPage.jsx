@@ -1,37 +1,34 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+// frontend/src/pages/ChatPage.jsx
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
+import { useSocketStore } from "../store/useSocketStore";
 import { 
-  Send, 
-  LogOut, 
-  Users, 
-  MessageSquare, 
-  Menu, 
-  X,
-  Search,
-  Smile,
-  Paperclip,
-  CheckCheck
+  Send, LogOut, Users, MessageSquare, Menu, X,
+  Search, Smile, Paperclip, CheckCheck
 } from "lucide-react";
 import EmojiPicker from 'emoji-picker-react';
 import "./chatPage.css";
 
 const Avatar = ({ name, size = "normal" }) => {
   const initials = name ? name.slice(0, 2).toUpperCase() : "?";
-  return (
-    <div className={`chat-avatar ${size}`}>
-      {initials}
-    </div>
-  );
+  return <div className={`chat-avatar ${size}`}>{initials}</div>;
 };
 
-const ChatListItem = ({ user, active, onSelect }) => (
+// ✅ ChatListItem now receives isOnline prop and shows the green dot
+const ChatListItem = ({ user, active, onSelect, isOnline }) => (
   <button className={`chat-list-item ${active ? "active" : ""}`} onClick={() => onSelect(user)}>
-    <Avatar name={user.userName || user.name || user.email} size="small" />
+    <div style={{ position: "relative" }}>
+      <Avatar name={user.userName || user.name || user.email} size="small" />
+      {isOnline && <span className="online-dot" />}
+    </div>
     <div className="chat-list-text">
       <div className="chat-list-header">
         <strong>{user.userName || user.name || "Unknown"}</strong>
+        {isOnline && (
+          <span style={{ fontSize: "0.65rem", color: "var(--success)" }}>● online</span>
+        )}
       </div>
       <div className="chat-list-footer">
         <span className="last-message">{user.email || "No email"}</span>
@@ -57,100 +54,138 @@ const ChatPage = () => {
   const navigate = useNavigate();
   const { authUser, logout, isCheckingAuth } = useAuthStore();
   const {
-    contacts,
-    chats,
-    messages,
-    selectedUser,
-    activeTab,
-    isUsersLoading,
-    isMessagesLoading,
-    isInitialized,
-    setActiveTab,
-    setSelectedUser,
-    getAllMessages,
-    sendMessage,
-    initializeChat,
-    reset
+    contacts, chats, messages, selectedUser, activeTab,
+    isUsersLoading, isMessagesLoading,
+    setActiveTab, setSelectedUser, getAllMessages,
+    sendMessage, initializeChat, reset
   } = useChatStore();
+
+  // ✅ Get socket and onlineUsers from socket store
+  const { socket, onlineUsers } = useSocketStore();
 
   const [draft, setDraft] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null)
+  const [selectedImage, setSelectedImage] = useState(null);
+  // ✅ Typing indicator state
+  const [isTyping, setIsTyping] = useState(false);
+
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const emojiButtonRef = useRef(null);
   const emojiPickerRef = useRef(null);
-  const fileInputRef = useRef(null)
+  const fileInputRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
-  // Check auth and initialize chat
   useEffect(() => {
-    if (!authUser) {
-      navigate("/login");
-      return;
-    }
+    if (!authUser) { navigate("/login"); return; }
   }, [authUser, navigate]);
 
-  // Reset chat store on logout
-  useEffect(() => {
-    return () => {
-      reset();
-    };
-  }, [reset]);
+  useEffect(() => { return () => reset(); }, [reset]);
 
   useEffect(() => {
     if (!authUser) return;
     initializeChat();
   }, [authUser]);
 
-  // Load messages when user is selected
   useEffect(() => {
     if (selectedUser?._id || selectedUser?.id) {
       getAllMessages(selectedUser._id || selectedUser.id);
     }
   }, [selectedUser, getAllMessages]);
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Close emoji picker when clicking outside
+  // ✅ Listen for incoming messages in real-time
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        emojiPickerRef.current && 
-        !emojiPickerRef.current.contains(event.target) &&
-        emojiButtonRef.current &&
-        !emojiButtonRef.current.contains(event.target)
-      ) {
-        setShowEmojiPicker(false);
+    if (!socket || !selectedUser) return;
+
+    const handleNewMessage = (message) => {
+      if (message.senderId === (selectedUser._id || selectedUser.id)) {
+        useChatStore.setState((state) => ({
+          messages: [...state.messages, message]
+        }));
       }
     };
 
+    socket.on("newMessage", handleNewMessage);
+    return () => socket.off("newMessage", handleNewMessage);
+  }, [socket, selectedUser]);
+
+  // ✅ Listen for typing events from the other person
+  useEffect(() => {
+    if (!socket || !selectedUser) return;
+
+    const handleTyping = ({ from }) => {
+      if (from === (selectedUser._id || selectedUser.id)) setIsTyping(true);
+    };
+    const handleStopTyping = ({ from }) => {
+      if (from === (selectedUser._id || selectedUser.id)) setIsTyping(false);
+    };
+
+    socket.on("typing", handleTyping);
+    socket.on("stopTyping", handleStopTyping);
+
+    return () => {
+      socket.off("typing", handleTyping);
+      socket.off("stopTyping", handleStopTyping);
+      setIsTyping(false); // reset when switching chats
+    };
+  }, [socket, selectedUser]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target) &&
+        emojiButtonRef.current &&
+        !emojiButtonRef.current.contains(event.target)
+      ) setShowEmojiPicker(false);
+    };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const selectedList = activeTab === "chats" ? chats : contacts;
 
+  // ✅ Emit typing events when user types
+  const handleDraftChange = (e) => {
+    setDraft(e.target.value);
+
+    if (!socket || !selectedUser) return;
+    socket.emit("typing", { to: selectedUser._id || selectedUser.id });
+
+    clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("stopTyping", { to: selectedUser._id || selectedUser.id });
+    }, 2000);
+  };
+
   const onSend = async (e) => {
     e.preventDefault();
     if (!selectedUser || (!draft.trim() && !selectedImage)) return;
-    
+
+    // Stop typing indicator when message is sent
+    if (socket) {
+      socket.emit("stopTyping", { to: selectedUser._id || selectedUser.id });
+      clearTimeout(typingTimeoutRef.current);
+    }
+
     setIsSending(true);
     try {
-      await sendMessage(selectedUser._id || selectedUser.id,{
+      await sendMessage(selectedUser._id || selectedUser.id, {
         text: draft.trim(),
         image: selectedImage
       });
       setDraft("");
-      setSelectedImage(null)
+      setSelectedImage(null);
       inputRef.current?.focus();
     } catch (error) {
-      console.error(error)
+      console.error(error);
     } finally {
       setIsSending(false);
     }
@@ -163,11 +198,8 @@ const ChatPage = () => {
   };
 
   const toggleSidebar = () => {
-    if (window.innerWidth <= 768) {
-      setMobileMenuOpen(!mobileMenuOpen);
-    } else {
-      setSidebarOpen(!sidebarOpen);
-    }
+    if (window.innerWidth <= 768) setMobileMenuOpen(!mobileMenuOpen);
+    else setSidebarOpen(!sidebarOpen);
   };
 
   const handleSelectUser = (user) => {
@@ -175,33 +207,24 @@ const ChatPage = () => {
     if (window.innerWidth <= 768) setMobileMenuOpen(false);
   };
 
-  // Handle emoji selection
   const onEmojiClick = (emojiObject) => {
     setDraft(prev => prev + emojiObject.emoji);
     setShowEmojiPicker(false);
     inputRef.current?.focus();
   };
 
-  // Show loading while checking auth
-  if (isCheckingAuth) {
-    return (
-      <div className="loading-container">
-        <div className="loader"></div>
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
-  // Redirect if no auth user
-  if (!authUser) {
-    return null;
-  }
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => setSelectedImage(reader.result);
+    reader.readAsDataURL(file);
+  };
 
   const formatDate = (date) => {
     const now = new Date();
     const msgDate = new Date(date);
     const diffDays = Math.floor((now - msgDate) / (1000 * 60 * 60 * 24));
-    
     if (diffDays === 0) return "Today";
     if (diffDays === 1) return "Yesterday";
     if (diffDays < 7) return msgDate.toLocaleDateString([], { weekday: 'short' });
@@ -215,18 +238,21 @@ const ChatPage = () => {
     return groups;
   }, {});
 
-  const handleImageSelect = (e) => {
-    const file = e.target.files[0]
-    if(!file) return
+  // ✅ Is the currently selected user online?
+  const isSelectedUserOnline = selectedUser
+    ? onlineUsers.includes(selectedUser._id || selectedUser.id)
+    : false;
 
-    const reader = new FileReader();
-
-    reader.onloadend = () => {
-      setSelectedImage(reader.result)
-    }
-
-    reader.readAsDataURL(file)
+  if (isCheckingAuth) {
+    return (
+      <div className="loading-container">
+        <div className="loader"></div>
+        <p>Loading...</p>
+      </div>
+    );
   }
+
+  if (!authUser) return null;
 
   return (
     <div className="chat-app">
@@ -241,17 +267,16 @@ const ChatPage = () => {
           {selectedUser && (
             <div className="active-chat-info">
               <h3>{selectedUser.userName || selectedUser.name}</h3>
-              <span>Online</span>
+              {/* ✅ Real online/offline status in header */}
+              <span style={{ color: isSelectedUserOnline ? "var(--success)" : "var(--text-tertiary)" }}>
+                {isSelectedUserOnline ? "Online" : "Offline"}
+              </span>
             </div>
           )}
         </div>
         <div className="header-right">
-          <button className="icon-btn" title="Search">
-            <Search size={18} />
-          </button>
-          <button className="icon-btn" onClick={handleLogout} title="Logout">
-            <LogOut size={18} />
-          </button>
+          <button className="icon-btn" title="Search"><Search size={18} /></button>
+          <button className="icon-btn" onClick={handleLogout} title="Logout"><LogOut size={18} /></button>
         </div>
       </header>
 
@@ -269,18 +294,12 @@ const ChatPage = () => {
           </div>
 
           <div className="tab-row">
-            <button 
-              className={`tab-btn ${activeTab === "chats" ? "active" : ""}`}
-              onClick={() => setActiveTab("chats")}
-            >
+            <button className={`tab-btn ${activeTab === "chats" ? "active" : ""}`} onClick={() => setActiveTab("chats")}>
               <MessageSquare size={16} />
               <span>Chats</span>
               {chats.length > 0 && <span className="tab-count">{chats.length}</span>}
             </button>
-            <button 
-              className={`tab-btn ${activeTab === "contacts" ? "active" : ""}`}
-              onClick={() => setActiveTab("contacts")}
-            >
+            <button className={`tab-btn ${activeTab === "contacts" ? "active" : ""}`} onClick={() => setActiveTab("contacts")}>
               <Users size={16} />
               <span>Contacts</span>
               {contacts.length > 0 && <span className="tab-count">{contacts.length}</span>}
@@ -300,17 +319,15 @@ const ChatPage = () => {
                   user={user}
                   active={(selectedUser?._id || selectedUser?.id) === (user._id || user.id)}
                   onSelect={handleSelectUser}
+                  // ✅ Pass isOnline for each user in the list
+                  isOnline={onlineUsers.includes(user._id || user.id)}
                 />
               ))
             ) : (
               <div className="empty-state">
                 <div className="empty-icon">💬</div>
                 <p>No {activeTab} yet</p>
-                <small>
-                  {activeTab === "chats" 
-                    ? "Start a conversation with someone" 
-                    : "No other users found"}
-                </small>
+                <small>{activeTab === "chats" ? "Start a conversation with someone" : "No other users found"}</small>
               </div>
             )}
           </div>
@@ -325,13 +342,7 @@ const ChatPage = () => {
                 <h2>Welcome to Echo</h2>
                 <p>Select a conversation to start chatting</p>
                 {contacts.length > 0 && (
-                  <button 
-                    className="start-chat-btn"
-                    onClick={() => {
-                      setActiveTab("contacts");
-                      if (contacts[0]) handleSelectUser(contacts[0]);
-                    }}
-                  >
+                  <button className="start-chat-btn" onClick={() => { setActiveTab("contacts"); if (contacts[0]) handleSelectUser(contacts[0]); }}>
                     Start a conversation
                   </button>
                 )}
@@ -354,9 +365,7 @@ const ChatPage = () => {
                 ) : (
                   Object.entries(groupedMessages).map(([date, msgs]) => (
                     <div key={date} className="message-group">
-                      <div className="date-divider">
-                        <span>{date}</span>
-                      </div>
+                      <div className="date-divider"><span>{date}</span></div>
                       {msgs.map((message, idx) => (
                         <MessageBubble
                           key={message._id || idx}
@@ -370,51 +379,33 @@ const ChatPage = () => {
                 <div ref={messagesEndRef} />
               </div>
 
+              {/* ✅ Typing indicator — shows above the input */}
+              {isTyping && (
+                <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", padding: "0 20px 6px" }}>
+                  {selectedUser.userName} is typing...
+                </p>
+              )}
+
               {selectedImage && (
                 <div className="outer-box">
                   <div className="chatgpt-style-preview">
-                  <img src={selectedImage} alt="preview" />
-                  <button
-                    type="button"
-                    className="remove-image-btn"
-                    onClick={() => setSelectedImage(null)}
-                  >
-                    ✕
-                  </button>
+                    <img src={selectedImage} alt="preview" />
+                    <button type="button" className="remove-image-btn" onClick={() => setSelectedImage(null)}>✕</button>
                   </div>
-
                 </div>
               )}
+
               <form className="chat-input-form" onSubmit={onSend}>
                 <div className="input-actions" style={{ position: 'relative' }}>
-                  
                   <button type="button" className="attach-btn" title="Attach file" onClick={() => fileInputRef.current.click()}>
                     <Paperclip size={18} />
                   </button>
-                  <input 
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    style={{display: "none"}}
-                    onChange={handleImageSelect}
-                  />
-                  <button 
-                    type="button" 
-                    className="emoji-btn" 
-                    title="Add emoji"
-                    ref={emojiButtonRef}
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  >
+                  <input type="file" accept="image/*" ref={fileInputRef} style={{ display: "none" }} onChange={handleImageSelect} />
+                  <button type="button" className="emoji-btn" title="Add emoji" ref={emojiButtonRef} onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
                     <Smile size={18} />
                   </button>
                   {showEmojiPicker && (
-                    <div ref={emojiPickerRef} style={{
-                      position: 'absolute',
-                      bottom: '100%',
-                      left: 0,
-                      marginBottom: '10px',
-                      zIndex: 1000
-                    }}>
+                    <div ref={emojiPickerRef} style={{ position: 'absolute', bottom: '100%', left: 0, marginBottom: '10px', zIndex: 1000 }}>
                       <EmojiPicker onEmojiClick={onEmojiClick} />
                     </div>
                   )}
@@ -423,16 +414,12 @@ const ChatPage = () => {
                   ref={inputRef}
                   type="text"
                   value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
+                  onChange={handleDraftChange}  // ✅ replaced setDraft with handleDraftChange
                   placeholder="Type a message..."
                   disabled={isSending}
                   className="message-input"
                 />
-                <button 
-                  type="submit" 
-                  disabled={(!draft.trim() && !selectedImage) || isSending}
-                  className="send-btn"
-                >
+                <button type="submit" disabled={(!draft.trim() && !selectedImage) || isSending} className="send-btn">
                   <Send size={18} />
                 </button>
               </form>
@@ -441,7 +428,6 @@ const ChatPage = () => {
         </main>
       </div>
 
-      {/* Mobile overlay */}
       {mobileMenuOpen && <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)} />}
     </div>
   );

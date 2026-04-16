@@ -54,3 +54,9 @@
 ## Day 8 - File Upload feature
 
 - Build Image upload feature
+
+## Day 9 - Socket io implementation
+
+- Added Live Messaging
+- Added typing indicators
+- Added online/offline status
