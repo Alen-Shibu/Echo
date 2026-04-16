@@ -740,12 +740,18 @@ body {
   }
 
 
-  .chat-app{
+  .chat-app {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
     height: 100dvh;
+    overflow: hidden;
   }
 
   .chat-messages {
     padding: 18px;
+    overflow-y: auto;
   }
 
   .welcome-content h2 {
