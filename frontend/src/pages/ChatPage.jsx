@@ -8,16 +8,20 @@ import {Send, LogOut, Users, MessageSquare, Menu, X, Volume2, VolumeX, Smile, Pa
 import EmojiPicker from 'emoji-picker-react';
 import "./chatPage.css";
 
-const Avatar = ({ name, size = "normal" }) => {
+const Avatar = ({ name, profilePic, size = "normal" }) => {
   const initials = name ? name.split(" ").map((word)=>word[0]).join("").toUpperCase() : "?";
-  return <div className={`chat-avatar ${size}`}>{initials}</div>;
+  return <div className={`chat-avatar ${size}`}>
+  {
+    profilePic ? (<img src={profilePic} alt={name} className="avatar-img" />) : (initials)
+  }
+  </div>;
 };
 
 // ✅ ChatListItem now receives isOnline prop and shows the green dot
 const ChatListItem = ({ user, active, onSelect, isOnline }) => (
   <button className={`chat-list-item ${active ? "active" : ""}`} onClick={() => onSelect(user)}>
     <div style={{ position: "relative" }}>
-      <Avatar name={user.userName || user.name || user.email} size="small" />
+      <Avatar profilePic={user?.profilePic} name={user.userName || user.name || user.email} size="small" />
       {isOnline && <span className="online-dot" />}
     </div>
     <div className="chat-list-text">
@@ -289,7 +293,7 @@ const ChatPage = () => {
         <aside className={`chat-sidebar ${sidebarOpen ? "open" : "closed"} ${mobileMenuOpen ? "mobile-open" : ""}`}>
           <div className="sidebar-header">
             <div className="user-info">
-              <Avatar name={authUser?.userName || authUser?.email} />
+              <Avatar profilePic={authUser?.profilePic} name={authUser?.userName || authUser?.email} />
               <div>
                 <p className="user-name">{authUser?.userName || "User"}</p>
                 <p className="user-email">{authUser?.email}</p>
