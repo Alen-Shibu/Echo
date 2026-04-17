@@ -5,4 +5,11 @@ const api = axios.create({
     withCredentials: true
 })
 
+// ← ADDED: attach token from localStorage to every request for safari browser
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem("echo_token")
+    if (token) config.headers.Authorization = `Bearer ${token}`
+    return config
+})
+
 export default api

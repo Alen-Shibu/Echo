@@ -29,6 +29,7 @@ export const useAuthStore = create((set, get) => ({
         try {
             set({ isRegistering: true })
             const res = await api.post("/auth/register", data)
+            if (res.data.token) localStorage.setItem("echo_token", res.data.token)
             set({ authUser: res.data })
             useSocketStore.getState().connectSocket(res.data._id)
             // IMPORTANT: trigger chat init here
@@ -47,6 +48,7 @@ export const useAuthStore = create((set, get) => ({
         try {
             set({ isLoggingIn: true })
             const res = await api.post('/auth/login', data)
+            if (res.data.token) localStorage.setItem("echo_token", res.data.token)
             set({ authUser: res.data })
             useSocketStore.getState().connectSocket(res.data._id)
             toast.success("Logged in successfully")
@@ -62,6 +64,7 @@ export const useAuthStore = create((set, get) => ({
     logout: async () => {
         try {
             await api.post('/auth/logout')
+            localStorage.removeItem("echo_token")  // ← ADDED
             set({ authUser: null })
             useSocketStore.getState().disconnectSocket()
             toast.success("Logged out successfully")

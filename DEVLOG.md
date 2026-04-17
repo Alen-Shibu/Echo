@@ -62,3 +62,7 @@
 - Added online/offline status
 - Fixed layout issue in mobile screen
 - Added sound icon and notification sound toggle
+
+## Day 10 - Adjusted code for safari browsers
+
+- Added sending tokens in localstorage to enable login in safari browsers

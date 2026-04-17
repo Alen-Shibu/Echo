@@ -50,13 +50,14 @@ export const register = async(req,res) => {
         profilePic: newUser.profilePic
     })
 
-    generateToken(newUser._id,res)
+    const token = generateToken(newUser._id, res)
 
     res.status(201).json({
         _id: newUser._id,
         userName: newUser.userName,
         email: newUser.email,
-        profilePic: newUser.profilePic
+        profilePic: newUser.profilePic,
+        token
     })
     
     } catch (error) {
@@ -89,13 +90,14 @@ export const login = async(req,res) => {
         const isPasswordCorrect = await bcrypt.compare(passwordTrimmed,user.password)
         if(!isPasswordCorrect) return res.status(401).json({message: "Invalid Credentials"})
 
-        generateToken(user._id,res)
+        const token = generateToken(newUser._id, res)
 
         res.status(200).json({
             _id: user._id,
             userName: user.userName,
             email: user.email,
-            profilePic: user.profilePic
+            profilePic: user.profilePic,
+            token
         })
     } catch (error) {
         console.error('Error in login controller:',error)

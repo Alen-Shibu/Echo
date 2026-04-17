@@ -13,6 +13,8 @@ export const generateToken = (userId,res) => {
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         secure: process.env.NODE_ENV === "production"
         })
+
+        return token
     } catch (error) {
         console.log('Error in generateToken middleware')
         throw new Error("Token generation failed");
