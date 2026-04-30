@@ -74,10 +74,6 @@ app.use(cors({
 app.use("/api/auth",authRoutes)
 app.use("/api/message",messageRoutes)
 
-app.get('/',(_,res)=>{
-    res.send("Server is running")
-})
-
 const startServer = async() => {
     try {
         await connectDB();
