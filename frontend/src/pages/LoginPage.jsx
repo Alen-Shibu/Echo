@@ -46,11 +46,11 @@ const LoginPage = () => {
             <p>Don’t have an account? <Link to={'/register'}>Create one</Link></p>
           </div>
 
-          {/* OAuth */}
+          {/* OAuth
           <div className="oauth-row">
             <button className="oauth-btn">Google</button>
             <button className="oauth-btn">GitHub</button>
-          </div>
+          </div> */}
 
           <div className="divider"><span>or continue with</span></div>
 

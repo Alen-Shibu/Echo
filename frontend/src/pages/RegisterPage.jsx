@@ -46,11 +46,11 @@ const RegisterPage = () => {
             <p>Already have one? <Link to={'/login'}>Sign in insted</Link></p>
           </div>
 
-          {/* OAuth */}
+          {/* OAuth
           <div className="oauth-row">
             <button className="oauth-btn">Google</button>
             <button className="oauth-btn">GitHub</button>
-          </div>
+          </div> */}
 
           <div className="divider"><span>or</span></div>
 
