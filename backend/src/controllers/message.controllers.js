@@ -9,7 +9,6 @@ export const getAllContacts = async(req,res) => {
         const loggedUserId = req.user._id;
 
         const filteredUsers = await User.find({_id : {$ne : loggedUserId}}).select("-password")
-        if(!filteredUsers.length === 0) return res.status(404).json({message: "No other Users yet"})
 
         res.status(200).json(filteredUsers)
     } catch (error) {
